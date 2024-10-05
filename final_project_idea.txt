@@ -1,0 +1,1 @@
+My idea for my data analysis final project is to analyze F1 racing. I was able to find multiple data sets that could be useful for this project and it is a topic I am interested in. Using Kaggle I was able to find datasets about the different drivers, circuits, and teams. Since I have already found data I will use that to make a preliminary plot. 
