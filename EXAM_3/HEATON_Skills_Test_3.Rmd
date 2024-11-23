@@ -1,0 +1,99 @@
+---
+title: "HEATON_Skills_Test_3.Rmd"
+output: html_document
+date: "2024-11-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+
+First the data was tidied by creating a column containing the Rank and corresponding salary of faculty. Once the data was tidied, a graph was created showing the rank 
+of different faculty and the corresponding salary. This was also faceted by the tier of
+the school.
+
+
+```{r faculty, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(janitor)
+df <- read.csv('./FacultySalaries_1995.csv')
+```
+Here is cleaning:
+```{r cleaning, echo=TRUE, warning=FALSE, message=FALSE}
+cleandf <- df %>%
+  pivot_longer(ends_with('Salary'),
+             names_to = 'Rank',
+             values_to = 'Salary') %>%
+  transform(Rank=str_replace(Rank,"Avg","")) %>%
+  transform(Rank=str_replace(Rank,"ProfSalary",""))
+```
+Below is the plot I created:
+
+
+```{r cleandf, echo=FALSE, warning=FALSE}
+cleandf %>%
+  filter(Tier != "VIIB") %>%
+  ggplot(aes(x = Rank, y = Salary, fill = Rank)) +
+  geom_boxplot() +
+  facet_grid(~ Tier) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle =45))
+
+```
+
+## Question 2
+
+I created an ANOVA model to see State, Tier, and Rank affect on Salary.
+The code used is posted below along with a summary.
+
+```{r creating model}
+aov <- cleandf %>% 
+  aov(data = .,
+      formula = Salary ~ State + Tier + Rank)
+summary(aov)
+```
+
+
+## Question 3
+Below is the code for tidying the data set Juniper Oils. 
+
+```{r tidying, message=FALSE, results=FALSE}
+oil_df <- read.csv('./Juniper_Oils.csv')
+clean_names(oil_df)
+
+names(oil_df) <- gsub("\\.", "-", names(oil_df))
+
+new_df <- oil_df %>%
+  pivot_longer(cols = c("alpha-pinene","para-cymene","alpha-terpineol","cedr-9-ene",
+                        "alpha-cedrene","beta-cedrene","cis-thujopsene","alpha-himachalene","beta-chamigrene",
+                        "cuparene","compound-1","alpha-chamigrene","widdrol","cedrol","beta-acorenol","alpha-acorenol",
+                        "gamma-eudesmol","beta-eudesmol","alpha-eudesmol","cedr-8-en-13-ol","cedr-8-en-15-ol","compound-2","thujopsenal"),
+               names_to = 'ChemicalID',
+               values_to = 'Concentration')
+```
+
+## Question 4
+Then I used the tidied data set to create a graph that showed the relationship between years since burn and the concentration of different chemicals. 
+
+```{r graph}
+new_df %>%
+  ggplot(aes(x = YearsSinceBurn, y = Concentration)) +
+  geom_smooth() +
+  facet_wrap(~ ChemicalID, scales = "free_y") +
+  theme_minimal()
+```
+
+## Question 5
+I then used a generalized linear model to see which chemicals had a significant concentration affected by years since burn. 
+
+```{r model and output}
+mod1 <- glm(data = new_df,
+            formula = Concentration ~ YearsSinceBurn * ChemicalID)
+
+broom::tidy(mod1) %>%
+  filter(p.value < 0.05)
+```
+
+
